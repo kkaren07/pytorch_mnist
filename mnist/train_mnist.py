@@ -9,6 +9,7 @@ from model import TheModelClass
 import load_data
 import torch.optim as optim
 import matplotlib.pyplot as plt
+import pickle
 
 def train(epochs):
     global model
@@ -51,6 +52,7 @@ def test2(model):
 
             for idx in range(len(images)):
                 result.append({"image" : images[idx], "label": labels[idx].item(), "predict": predicted[idx].item()})
+    to_dog(result)
     return result                
     
 def output_error(result):
@@ -60,6 +62,14 @@ def output_error(result):
             plt.imshow(np_images.reshape(28,28))
             print("label", dec["label"], " vs ", "predict: ", dec["predict"])
             plt.show()
+
+def to_dog(result):
+    result_list = []
+    f = open('list.txt', 'wb')
+    for dec in result:
+        #img_value = dec["image"].values()
+        result_list.append({"image":dec["image"].tolist(), "label":dec["label"], "predict":dec["predict"]})
+    pickle.dump(result_list, f)
     
 def test(model):
     predicted_list = []
@@ -109,7 +119,7 @@ if __name__ == '__main__':
     epochs = 2
     model = TheModelClass()
     #train(epochs)
-    test(model)
+    #test(model)
     result = test2(model)
     output_error(result)
     
