@@ -16,9 +16,6 @@ def train(epochs):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(),lr=0.0005, momentum=0.99, nesterov=True)
     #pred_label=[]
-    
-    #args = parser()
-    
     for epoch in range(epochs):
         running_loss = 0.0
         for batch_idx, (images, labels) in enumerate(load_data.trainloader):
@@ -43,13 +40,16 @@ def test2(model):
     model.load_state_dict(param)
     model = model.eval()
     result = []
+    i=0
     with torch.no_grad():
-        for data in load_data.testloader:
+        for data in load_data.get_img():
             images, labels = data
             outputs = model(images)
             #1行ごとの最大値,1番accuracyが高いlabelを1batch100slicesのimageからget
             _, predicted = torch.max(outputs, 1)
-
+            print(len(images))
+            print(i)
+            i=i+1
             for idx in range(len(images)):
                 result.append({"image" : images[idx], "label": labels[idx].item(), "predict": predicted[idx].item()})
     to_dog(result)
@@ -68,6 +68,7 @@ def to_dog(result):
     f = open('list.txt', 'wb')
     for dec in result:
         #img_value = dec["image"].values()
+        #print(dec['image'])
         result_list.append({"image":dec["image"].tolist(), "label":dec["label"], "predict":dec["predict"]})
     pickle.dump(result_list, f)
     

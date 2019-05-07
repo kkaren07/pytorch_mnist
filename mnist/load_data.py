@@ -6,7 +6,7 @@ import pickle
 import random
 
 
-def confirm_data(train_labels,train_labels_error):
+def confirm_data(train_labels,train_labels_error, error_idxs):
     count=0
     for idx in range(len(train_labels)):
         if train_labels[idx]!=train_labels_error[idx]:
@@ -38,23 +38,26 @@ def put_error(labels, p):
 
     return labels_error, error_idxs
 
-batch_size=100
-transform = transforms.Compose(
-    [transforms.ToTensor(),
-     transforms.Normalize((0.5, ), (0.5, ))])
-trainset = torchvision.datasets.MNIST(root='./data_mnist', train=True, download=True, transform=transform)
-train_labels =trainset.train_labels
-train_labels_error, error_idxs = put_error(train_labels, 0.2)
-print(train_labels_error)
-confirm_data(train_labels,train_labels_error)
+def get_img():
+    batch_size=100
+    transform = transforms.Compose(
+        [transforms.ToTensor(),
+         transforms.Normalize((0.5, ), (0.5, ))])
+    trainset = torchvision.datasets.MNIST(root='./data_mnist', train=True, download=True, transform=transform)
+    train_labels =trainset.train_labels
+    train_labels_error, error_idxs = put_error(train_labels, 0.2)
+    print(train_labels_error)
+    confirm_data(train_labels,train_labels_error, error_idxs)
+    
+    #trainloaderにtrainsetを入れるとbatchごとによんでくれる
+    trainset.labels = train_labels_error
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2)
+    
+    testset = torchvision.datasets.MNIST(root='./data_mnist', train=False, download=True, transform=transform)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
+    
+    classes = tuple(np.linspace(0, 9, 10, dtype=np.uint8))
+    return testloader
 
-#trainloaderにtrainsetを入れるとbatchごとによんでくれる
-trainset.labels = train_labels_error
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2)
-
-testset = torchvision.datasets.MNIST(root='./data_mnist', train=False, download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
-
-classes = tuple(np.linspace(0, 9, 10, dtype=np.uint8))
-
-        
+if __name__ == '__main__':
+    get_img()
