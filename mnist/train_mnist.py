@@ -11,14 +11,16 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 import pickle
 
-def train(epochs):
+def train(epochs,train_loader):
     global model
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(),lr=0.0005, momentum=0.99, nesterov=True)
     #pred_label=[]
+    
+    #train_loader = load_data.trainloader
     for epoch in range(epochs):
         running_loss = 0.0
-        for batch_idx, (images, labels) in enumerate(load_data.trainloader):
+        for batch_idx, (images, labels) in enumerate(trainloader):
             optimizer.zero_grad()
             # forward + backward + optimize
             outputs = model(images)
@@ -32,17 +34,17 @@ def train(epochs):
                 running_loss = 0.0
         
         print('Finished Training')
-        test()
+        #test()
     torch.save(model.state_dict(), 'weight')
 
-def test2(model):
+def test2(model, testloader):
     param = torch.load('weight')
     model.load_state_dict(param)
     model = model.eval()
     result = []
     i=0
     with torch.no_grad():
-        for data in load_data.get_img():
+        for data in testloader:
             images, labels = data
             outputs = model(images)
             #1行ごとの最大値,1番accuracyが高いlabelを1batch100slicesのimageからget
@@ -72,7 +74,7 @@ def to_dog(result):
         result_list.append({"image":dec["image"].tolist(), "label":dec["label"], "predict":dec["predict"]})
     pickle.dump(result_list, f)
     
-def test(model):
+def test():#もしtestだけしたい時はtest(model)にして保存したモデルを入れる
     predicted_list = []
     param = torch.load('weight')
     model.load_state_dict(param)
@@ -117,10 +119,13 @@ def imgshow(predicted_list):
     #print('pred:%d' % (load_data.classes[pled_label[j]] for j in range(100)), 'ans:%d'%(load_data.classes[labels[i]] for i in range(100)))
     
 if __name__ == '__main__':
+    testloader, trainlabel_err, trainloader = load_data.get_img()
+    file_n = open('err_trainlabel.txt','wb')
+    pickle.dump(trainlabel_err, file_n)
     epochs = 2
     model = TheModelClass()
-    #train(epochs)
+    train(epochs,trainloader)
     #test(model)
-    result = test2(model)
+    result = test2(model, testloader)
     output_error(result)
     
