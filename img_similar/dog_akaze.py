@@ -6,7 +6,7 @@ import torchvision
 import torchvision.transforms as transforms
 import pickle
 import os.path
-
+import annoy_mnist
 #%matplotlib inline
 
 def get_mnist():
@@ -107,24 +107,24 @@ def get_train_err(err_label, correct_label):
          num_err = 1#if this image's train label is not correct, num_err is 1
      else:
          num_err = 0
-        
+         
+def seikei(img):
+    img = img.numpy()
+    img = np.transpose(img, (1,2,0))
+    img = img.astype('uint8')
+    img = cv2.resize(img, (200,200))
+    return(img)
+    
 def akaze(test_img, train_img_list, err_labels_list, trainset):
     detector = cv2.AKAZE_create()
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
     #print(type(test_img))
-    test_img = test_img.numpy()
-    #print(type(test_img))
-    test_img = np.transpose(test_img, (1, 2, 0))
-    test_img = test_img.astype('uint8')
-    test_img = cv2.resize(test_img, (200,200))#detectAndComputeの戻り値がNoneではなくなった！
+    test_img = seikei(test_img)
     (test_kp, test_des) = detector.detectAndCompute(test_img, None)
     matches_list = []
     for img_num in range(60000):
         train_mnist = train_img_list[img_num]
-        train_mnist = train_mnist.numpy()
-        train_mnist = np.transpose(train_mnist, (1, 2, 0))
-        train_mnist = train_mnist.astype('uint8')
-        train_mnist = cv2.resize(train_mnist, (200,200))
+        train_mnist = seikei(train_mnist)
         (train_kp, train_des) = detector.detectAndCompute(train_mnist, None)
         num_err = get_train_err(err_labels_list[img_num], trainset.train_labels[img_num])
         matches = bf.match(train_des, test_des)
@@ -145,30 +145,36 @@ def main():
         data = pickle.load(list_result)
     with open('../mnist/err_trainlabel.txt', 'rb') as err_list:
         err_labels_list = pickle.load(err_list)
+    trainloader, trainset = get_mnist()
+    for batch_idx, (images, labels) in enumerate(trainloader):
+        for idx in range(len(images)):
+            train_img_list.append(images[idx])
     for dec in data:
         if dec['label'] != dec['predict']:
             torch_img = torch.tensor(dec['image'])
-            trainloader, trainset = get_mnist()
-            for batch_idx, (images, labels) in enumerate(trainloader):
-                for idx in range(len(images)):
-                    train_img_list.append(images[idx])
-                    #train_label_list.append(labels[idx])
-            #test_miss_mnist = preprocessing(test_miss_mnist)
-            #cv2.imwrite('output.jpg', test_miss_mnist)
+            # #for DoG
+            # test_miss_mnist, not_dog_img = before_DoG(torch_img)
+            # ret_list_sort = get_pass_img(test_miss_mnist, train_mnist_set)
+            # ret_list_top10 = ret_list_sort[:10]
+            # subplot(ret_list_top10, not_dog_img)
             
-            # for DoG
-            #test_miss_mnist, not_dog_img = before_DoG(torch_img)
-            #ret_list_sort = get_pass_img(test_miss_mnist, train_mnist_set)
-            #ret_list_top10 = ret_list_sort[:10]
-            #subplot(ret_list_top10, not_dog_img)
+            # #for AKAZE
+            # matches,test_img = akaze(torch_img, train_img_list, err_labels_list, trainset)
+            # matches = matches[:10]
+            # subplot(matches, test_img, k, num)
+            # k=k+10
+            # num=num+1
+
+            #for annoy
+            predict_indexes=annoy_mnist.make_model(torch_img, train_img_list)
+            for j, predict_i in enumerate(predict_indexes):
+                img = train_img_list[predict_i].numpy()
+                img = np.transpose(img,(1,2,0))
+                img = img.astype('uint8')
+                img = cv2.resize(img, (200,200))
+                plt.imshow(img)
+                plt.show()
             
-            # for AKAZE
-            matches,test_img = akaze(torch_img, train_img_list, err_labels_list, trainset)
-            matches = matches[:10]
-            subplot(matches, test_img, k, num)
-            k=k+10
-            num=num+1
-  
     
 if __name__ == '__main__':
     main()
