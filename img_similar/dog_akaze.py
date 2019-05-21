@@ -7,6 +7,7 @@ import torchvision.transforms as transforms
 import pickle
 import os.path
 import annoy_mnist
+import make_html
 #%matplotlib inline
 
 def get_mnist():
@@ -76,7 +77,7 @@ def extract_feature(img_test, img_train):
 #     ret_list_sort = sorted(ret_list, reverse=True, key=lambda x:x['distance']) # distance is sorted
 #     return(ret_list_sort)
 
-def subplot(ret_list_top10, test_img, k, num):
+def akaze_subplot(ret_list_top10, test_img, k, num):
     print('this is uncorrect image')
     #plt.imshow(test_img.reshape(28,28))
     plt.imshow(test_img)
@@ -103,11 +104,12 @@ def subplot(ret_list_top10, test_img, k, num):
         plt.close()
 
 def get_train_err(err_label, correct_label):
-     if err_label!=correct_label:
-         num_err = 1#if this image's train label is not correct, num_err is 1
-     else:
-         num_err = 0
-         
+    if err_label!=correct_label:
+        num_err = 1#if this image's train label is not correct, num_err is 1
+    else:
+        num_err = 0
+    return(num_err)
+        
 def seikei(img):
     img = img.numpy()
     img = np.transpose(img, (1,2,0))
@@ -135,11 +137,40 @@ def akaze(test_img, train_img_list, err_labels_list, trainset):
         
     matches_list = sorted(matches_list,  key = lambda x:-x['score'])
     return(matches_list, test_img)
-    
+
+def save_img(file_name,num):
+    str_file = '%03.f'%(num)+'.png'
+    path_file = os.path.join('./%s'%(file_name),str_file)
+    plt.savefig(path_file)
+
+def annoy_subplot(train_img_list, predict_indexes, test_img, k, err_labels_list, judge_label, trainset):
+    test_img = seikei(test_img)
+    plt.imshow(test_img)
+    save_img('uncorrect_img', k)
+    plt.show()
+    for j, predict_i in enumerate(predict_indexes):
+        img = seikei(train_img_list[predict_i])
+        judge_label.append({'from_load_data.py':err_labels_list[predict_i], 'from_trainset' : trainset.train_labels[predict_i]})#load_data.pyでノイズをつけた画像を見分けるために作成
+        plt.imshow(img)
+        save_img('similar_img', j+(k*10))
+        plt.show()
+        plt.close()
+    return(judge_label)
+        
+def only_loop():
+    judge_label = []
+    for i in range(60000):
+        num_err 
+        judge_label.append(num_err)
+    return(judge_label)
+
 def main():
     k=0
     num=0
+    count=0
     train_img_list = []
+    err_labels = []
+    judge_label = []
     #train_label_list = []
     with open('../mnist/list.txt', 'rb') as list_result:
         data = pickle.load(list_result)
@@ -161,20 +192,21 @@ def main():
             # #for AKAZE
             # matches,test_img = akaze(torch_img, train_img_list, err_labels_list, trainset)
             # matches = matches[:10]
-            # subplot(matches, test_img, k, num)
+            # akaze_subplot(matches, test_img, k, num)
             # k=k+10
             # num=num+1
 
             #for annoy
             predict_indexes=annoy_mnist.make_model(torch_img, train_img_list)
-            for j, predict_i in enumerate(predict_indexes):
-                img = train_img_list[predict_i].numpy()
-                img = np.transpose(img,(1,2,0))
-                img = img.astype('uint8')
-                img = cv2.resize(img, (200,200))
-                plt.imshow(img)
-                plt.show()
-            
-    
+            judge_label = annoy_subplot(train_img_list, predict_indexes, torch_img, k, err_labels_list, judge_label, trainset)
+            err_labels.append({'true_label' : dec['label'], 'predict_label' : dec['predict']})
+            k=k+1
+            if count==20:
+                print(err_labels)
+                with open('err_list.txt', 'wb') as f:
+                    pickle.dump(err_labels, f)
+                with open('judge_label.txt', 'wb') as f:
+                    pickle.dump(judge_label, f)
+            count=count+1
 if __name__ == '__main__':
     main()
