@@ -1,2 +1,2 @@
-pytorch image recognition
+Determine noise from image similarity
 ====
