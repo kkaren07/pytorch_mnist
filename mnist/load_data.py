@@ -5,8 +5,7 @@ import numpy as np
 import pickle
 import random
 
-
-def confirm_data(train_labels,train_labels_error, error_idxs):
+def confirm_data(train_labels, train_labels_error, error_idxs):
     count=0
     for idx in range(len(train_labels)):
         if train_labels[idx]!=train_labels_error[idx]:
@@ -34,9 +33,45 @@ def put_error(labels, p):
         label_with_error =  change_label(label, p)
         labels_error[i] = label_with_error
         if label_with_error != label:
-            error_idxs.append(i)
+            error_idxs.append(i)#ラベルがエラーのものだったらその画像のindexを追加してる
 
     return labels_error, error_idxs
+
+def make_label_list(true_labels, labels_error, error_idxs, trainset):
+    print(labels_error)
+    label_zero = []
+    label_one = []
+    label_two = []
+    label_three = []
+    label_four = []
+    label_five = []
+    label_six = []
+    label_seven = []
+    label_eight = []
+    label_nine = []
+    for i, label in enumerate(labels_error):
+        label =label.item()
+        if label == 0:
+            label_zero.append({'label':label, 'true_label':true_labels[i], 'image':trainset.train_data[i]})
+        elif label == 1:
+            label_one.append({'label':label, 'true_label':true_labels[i], 'image':trainset.train_data[i]})
+        elif label == 2:
+            label_two.append({'label':label, 'true_label':true_labels[i], 'image':trainset.train_data[i]})
+        elif label == 3:
+            label_three.append({'label':label, 'true_label':true_labels[i], 'image':trainset.train_data[i]})
+        elif label == 4:
+            label_four.append({'label':label, 'true_label':true_labels[i], 'image':trainset.train_data[i]})
+        elif label == 5:
+            label_five.append({'label':label, 'true_label':true_labels[i], 'image':trainset.train_data[i]})
+        elif label == 6:
+            label_six.append({'label':label, 'true_label':true_labels[i], 'image':trainset.train_data[i]})
+        elif label == 7:
+            label_seven.append({'label':label, 'true_label':true_labels[i], 'image':trainset.train_data[i]})
+        elif label == 8:
+            label_eight.append({'label':label, 'true_label':true_labels[i], 'image':trainset.train_data[i]})
+        elif label == 9:
+            label_nine.append({'label':label, 'true_label':true_labels[i], 'image':trainset.train_data[i]})
+    return label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine
 
 def get_img():
     batch_size=100
@@ -44,8 +79,9 @@ def get_img():
         [transforms.ToTensor(),
          transforms.Normalize((0.5, ), (0.5, ))])
     trainset = torchvision.datasets.MNIST(root='./data_mnist', train=True, download=True, transform=transform)
-    train_labels =trainset.train_labels
+    train_labels = trainset.train_labels
     train_labels_error, error_idxs = put_error(train_labels, 0.2)
+    label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine = make_label_list(train_labels, train_labels_error, error_idxs, trainset)
     print(train_labels_error)
     confirm_data(train_labels,train_labels_error, error_idxs)
     
@@ -57,7 +93,9 @@ def get_img():
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
     
     classes = tuple(np.linspace(0, 9, 10, dtype=np.uint8))
-    return testloader
+    return testloader,train_labels_error,trainset, trainloader, label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine
 
 if __name__ == '__main__':
-    get_img()
+    testloader, train_labels_error, trainset, trainloader, label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine = get_img()
+    print(label_zero)
+    
