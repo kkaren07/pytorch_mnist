@@ -48,7 +48,6 @@ def main(labels):
     plt.show()
     
 if __name__ == '__main__':
-    testloader, train_labels_error, trainset, trainloader, label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine = load_data.get_img()
-
-    main(label_one)
+    testloader, train_labels_error, trainset, trainloader, label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine, label_train = load_data.get_img()
+    main(label_testfail, label_train)
     #sklearn_mnist()

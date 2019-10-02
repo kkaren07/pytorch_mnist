@@ -10,6 +10,7 @@ import load_data
 import torch.optim as optim
 import matplotlib.pyplot as plt
 import pickle
+import t_sne
 
 def train(epochs,train_loader):
     global model
@@ -49,14 +50,22 @@ def test2(model, testloader):
             outputs = model(images)
             #1行ごとの最大値,1番accuracyが高いlabelを1batch100slicesのimageからget
             _, predicted = torch.max(outputs, 1)
+            label_testfail = make_list(images, labels, predicted)
             print(len(images))
             print(i)
             i=i+1
             for idx in range(len(images)):
                 result.append({"image" : images[idx], "label": labels[idx].item(), "predict": predicted[idx].item()})
-    to_dog(result)
-    return result                
-    
+    #to_dog(result)
+    return result,label_testfail
+
+#tsneに渡す用のtrainと推論に失敗したtestのリストを作成
+def make_list(images, labels, test_predicted):
+    label_testfail = []
+    for idx in range(len(images)):
+        label_testfail.append({'label':test_predicted[idx].item(), 'true_label':labels[idx].item(), 'image':images[idx]})
+    return(label_testfail)
+
 def output_error(result):
     for dec in result:
         if dec["label"] != dec["predict"]:
@@ -117,15 +126,20 @@ def imgshow(predicted_list):
        
     #print(' '.join('%s' % load_data.classes[predicted[j]] for j in range(100)))
     #print('pred:%d' % (load_data.classes[pled_label[j]] for j in range(100)), 'ans:%d'%(load_data.classes[labels[i]] for i in range(100)))
+def sum_list(list_a, list_b):
+    list_sum = list_a.append(list_b)
+    print(list_sum)
+    return(list_sum)
     
 if __name__ == '__main__':
-    testloader, trainlabel_err, trainloader = load_data.get_img()
+    testloader, trainlabel_err, trainset, trainloader, label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine, label_train= load_data.get_img()
     file_n = open('err_trainlabel.txt','wb')
     pickle.dump(trainlabel_err, file_n)
     epochs = 2
     model = TheModelClass()
     train(epochs,trainloader)
     #test(model)
-    result = test2(model, testloader)
-    output_error(result)
-    
+    result,label_testfail = test2(model, testloader)
+    #output_error(result)
+    list_for_tsne = sum_list(label_testfail, label_train)
+    t_sne.main(list_for_tsne)
