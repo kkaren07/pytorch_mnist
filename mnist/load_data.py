@@ -1,3 +1,4 @@
+#訓練データに対して自分の決めた確率で間違ったラベルのデータを追加する
 import torch
 import torchvision
 import torchvision.transforms as transforms
@@ -49,6 +50,10 @@ def make_label_list(true_labels, labels_error, error_idxs, trainset):
     label_seven = []
     label_eight = []
     label_nine = []
+    label_train = []
+    for i, label in enumerate(labels_error):
+        label_train.append({'label':label.item(), 'true_label':true_labels[i], 'image':trainset.train_data[i]})
+        
     for i, label in enumerate(labels_error):
         label =label.item()
         if label == 0:
@@ -71,7 +76,7 @@ def make_label_list(true_labels, labels_error, error_idxs, trainset):
             label_eight.append({'label':label, 'true_label':true_labels[i], 'image':trainset.train_data[i]})
         elif label == 9:
             label_nine.append({'label':label, 'true_label':true_labels[i], 'image':trainset.train_data[i]})
-    return label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine
+    return label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine, label_train
 
 def get_img():
     batch_size=100
@@ -81,7 +86,7 @@ def get_img():
     trainset = torchvision.datasets.MNIST(root='./data_mnist', train=True, download=True, transform=transform)
     train_labels = trainset.train_labels
     train_labels_error, error_idxs = put_error(train_labels, 0.2)
-    label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine = make_label_list(train_labels, train_labels_error, error_idxs, trainset)
+    label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine, label_train = make_label_list(train_labels, train_labels_error, error_idxs, trainset)
     print(train_labels_error)
     confirm_data(train_labels,train_labels_error, error_idxs)
     
@@ -93,9 +98,9 @@ def get_img():
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
     
     classes = tuple(np.linspace(0, 9, 10, dtype=np.uint8))
-    return testloader,train_labels_error,trainset, trainloader, label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine
+    return testloader,train_labels_error,trainset, trainloader, label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine, label_train
 
 if __name__ == '__main__':
-    testloader, train_labels_error, trainset, trainloader, label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine = get_img()
+    testloader, train_labels_error, trainset, trainloader, label_zero, label_one, label_two, label_three, label_four, label_five, label_six, label_seven, label_eight, label_nine, label_train = get_img()
     print(label_zero)
     
