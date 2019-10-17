@@ -47,17 +47,20 @@ def main(labels):
     # print(len(img_list))
     img_list = np.array(img_list)
     X_reduced = TSNE(n_components=3).fit_transform(img_list)#tsneにかけたあと正規化してる
-    file_save.main(X_reduce)
+    file_save.main_vec(X_reduced)
+    file_save.main_img(img_list)
 
-    for line in img_list:
-        if not os.path.isfile(path_img):
-            with open(path_img, mode='w') as f:
-                f.write(str(line))
-                f.write('\n')
-        else:
-            with open(path_img, mode='a') as f:
-                f.write(str(line))
-                f.write('\n')
+    # for line in img_list:
+    #     if not os.path.isfile(path_img):
+    #         with open(path_img, mode='w') as f:
+    #             f.write(str(line))
+    #             f.write('\n')
+    #     else:
+    #         with open(path_img, mode='a') as f:
+    #             print(line)
+    #             print('hoge')
+    #             f.write(str(line))
+    #             f.write('\n')   
 
     #k_means(img_list, X_reduced, true_list)
     cmap = get_cmap('tab10')
