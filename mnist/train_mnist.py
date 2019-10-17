@@ -63,7 +63,7 @@ def test2(model, testloader):
 def make_list(images, labels, test_predicted):
     label_testfail = []
     for idx in range(len(images)):
-        label_testfail.append({'label':test_predicted[idx].item(), 'true_label':labels[idx].item(), 'image':images[idx]})
+        label_testfail.append({'label':test_predicted[idx], 'true_label':labels[idx], 'image':images[idx]})
     return(label_testfail)
 
 def output_error(result):
@@ -127,8 +127,7 @@ def imgshow(predicted_list):
     #print(' '.join('%s' % load_data.classes[predicted[j]] for j in range(100)))
     #print('pred:%d' % (load_data.classes[pled_label[j]] for j in range(100)), 'ans:%d'%(load_data.classes[labels[i]] for i in range(100)))
 def sum_list(list_a, list_b):
-    list_sum = list_a.append(list_b)
-    print(list_sum)
+    list_sum = list_a + list_b
     return(list_sum)
     
 if __name__ == '__main__':
@@ -137,7 +136,7 @@ if __name__ == '__main__':
     pickle.dump(trainlabel_err, file_n)
     epochs = 2
     model = TheModelClass()
-    train(epochs,trainloader)
+    #train(epochs,trainloader)
     #test(model)
     result,label_testfail = test2(model, testloader)
     #output_error(result)
